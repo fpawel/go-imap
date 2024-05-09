@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"fmt"
 	"io"
 	netmail "net/mail"
@@ -206,7 +207,7 @@ func (cmd *FetchCommand) Close() error {
 	for cmd.Next() != nil {
 		// ignore
 	}
-	return cmd.cmd.Wait()
+	return cmd.cmd.Wait(context.Background())
 }
 
 // Collect accumulates message data into a list.

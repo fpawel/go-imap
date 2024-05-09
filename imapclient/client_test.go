@@ -1,6 +1,7 @@
 package imapclient_test
 
 import (
+	"context"
 	"crypto/tls"
 	"io"
 	"net"
@@ -160,7 +161,7 @@ func newClientServerPair(t *testing.T, initialState imap.ConnState) (*imapclient
 	if initialState >= imap.ConnStateAuthenticated {
 		// Dovecot connections are pre-authenticated
 		if !useDovecot {
-			if err := client.Login(testUsername, testPassword).Wait(); err != nil {
+			if err := client.Login(testUsername, testPassword).Wait(context.Background()); err != nil {
 				t.Fatalf("Login().Wait() = %v", err)
 			}
 		}
@@ -209,7 +210,7 @@ func TestLogin(t *testing.T) {
 	defer client.Close()
 	defer server.Close()
 
-	if err := client.Login(testUsername, testPassword).Wait(); err != nil {
+	if err := client.Login(testUsername, testPassword).Wait(context.Background()); err != nil {
 		t.Errorf("Login().Wait() = %v", err)
 	}
 }
@@ -222,7 +223,7 @@ func TestLogout(t *testing.T) {
 		t.Skip("Dovecot connections don't reply to LOGOUT")
 	}
 
-	if err := client.Logout().Wait(); err != nil {
+	if err := client.Logout().Wait(context.Background()); err != nil {
 		t.Errorf("Logout().Wait() = %v", err)
 	}
 	if err := client.Close(); err != nil {

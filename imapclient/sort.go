@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"github.com/emersion/go-imap/v2"
 	"github.com/emersion/go-imap/v2/internal/imapwire"
 )
@@ -78,7 +79,7 @@ type SortCommand struct {
 	nums []uint32
 }
 
-func (cmd *SortCommand) Wait() ([]uint32, error) {
-	err := cmd.cmd.Wait()
+func (cmd *SortCommand) Wait(ctx context.Context) ([]uint32, error) {
+	err := cmd.cmd.Wait(ctx)
 	return cmd.nums, err
 }

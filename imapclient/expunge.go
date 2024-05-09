@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"github.com/emersion/go-imap/v2"
 )
 
@@ -65,7 +66,7 @@ func (cmd *ExpungeCommand) Close() error {
 	for cmd.Next() != 0 {
 		// ignore
 	}
-	return cmd.cmd.Wait()
+	return cmd.cmd.Wait(context.Background())
 }
 
 // Collect accumulates expunged sequence numbers into a list.

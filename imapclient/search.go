@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -152,8 +153,8 @@ type SearchCommand struct {
 	data imap.SearchData
 }
 
-func (cmd *SearchCommand) Wait() (*imap.SearchData, error) {
-	return &cmd.data, cmd.cmd.Wait()
+func (cmd *SearchCommand) Wait(ctx context.Context) (*imap.SearchData, error) {
+	return &cmd.data, cmd.cmd.Wait(ctx)
 }
 
 func writeSearchKey(enc *imapwire.Encoder, criteria *imap.SearchCriteria) {

@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/emersion/go-imap/v2"
@@ -58,8 +59,8 @@ type EnableCommand struct {
 	data EnableData
 }
 
-func (cmd *EnableCommand) Wait() (*EnableData, error) {
-	return &cmd.data, cmd.cmd.Wait()
+func (cmd *EnableCommand) Wait(ctx context.Context) (*EnableData, error) {
+	return &cmd.data, cmd.cmd.Wait(ctx)
 }
 
 // EnableData is the data returned by the ENABLE command.

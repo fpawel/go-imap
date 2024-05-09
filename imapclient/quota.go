@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/emersion/go-imap/v2"
@@ -107,8 +108,8 @@ type GetQuotaCommand struct {
 	data *QuotaData
 }
 
-func (cmd *GetQuotaCommand) Wait() (*QuotaData, error) {
-	if err := cmd.cmd.Wait(); err != nil {
+func (cmd *GetQuotaCommand) Wait(ctx context.Context) (*QuotaData, error) {
+	if err := cmd.cmd.Wait(ctx); err != nil {
 		return nil, err
 	}
 	return cmd.data, nil
@@ -122,8 +123,8 @@ type GetQuotaRootCommand struct {
 	data    []QuotaData
 }
 
-func (cmd *GetQuotaRootCommand) Wait() ([]QuotaData, error) {
-	if err := cmd.cmd.Wait(); err != nil {
+func (cmd *GetQuotaRootCommand) Wait(ctx context.Context) ([]QuotaData, error) {
+	if err := cmd.cmd.Wait(ctx); err != nil {
 		return nil, err
 	}
 	return cmd.data, nil

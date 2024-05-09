@@ -1,6 +1,7 @@
 package imapclient_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/emersion/go-imap/v2"
@@ -22,7 +23,7 @@ func testCreate(t *testing.T, name string, utf8Accept bool) {
 		}
 	}
 
-	if err := client.Create(name, nil).Wait(); err != nil {
+	if err := client.Create(name, nil).Wait(context.Background()); err != nil {
 		t.Fatalf("Create() = %v", err)
 	}
 

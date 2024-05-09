@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/emersion/go-imap/v2"
@@ -32,8 +33,8 @@ type CapabilityCommand struct {
 	caps imap.CapSet
 }
 
-func (cmd *CapabilityCommand) Wait() (imap.CapSet, error) {
-	err := cmd.cmd.Wait()
+func (cmd *CapabilityCommand) Wait(ctx context.Context) (imap.CapSet, error) {
+	err := cmd.cmd.Wait(ctx)
 	return cmd.caps, err
 }
 

@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"fmt"
 	"sync/atomic"
 	"time"
@@ -149,9 +150,9 @@ func (cmd *idleCommand) Close() error {
 // Wait blocks until the IDLE command has completed.
 //
 // Wait can only be called after Close.
-func (cmd *idleCommand) Wait() error {
+func (cmd *idleCommand) Wait(ctx context.Context) error {
 	if cmd.enc != nil {
 		panic("imapclient: idleCommand.Close must be called before Wait")
 	}
-	return cmd.cmd.Wait()
+	return cmd.cmd.Wait(ctx)
 }

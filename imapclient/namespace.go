@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/emersion/go-imap/v2"
@@ -33,8 +34,8 @@ type NamespaceCommand struct {
 	data imap.NamespaceData
 }
 
-func (cmd *NamespaceCommand) Wait() (*imap.NamespaceData, error) {
-	return &cmd.data, cmd.cmd.Wait()
+func (cmd *NamespaceCommand) Wait(ctx context.Context) (*imap.NamespaceData, error) {
+	return &cmd.data, cmd.cmd.Wait(ctx)
 }
 
 func readNamespaceResponse(dec *imapwire.Decoder) (*imap.NamespaceData, error) {

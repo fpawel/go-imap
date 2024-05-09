@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/emersion/go-sasl"
@@ -12,7 +13,7 @@ import (
 // Authenticate sends an AUTHENTICATE command.
 //
 // Unlike other commands, this method blocks until the SASL exchange completes.
-func (c *Client) Authenticate(saslClient sasl.Client) error {
+func (c *Client) Authenticate(ctx context.Context, saslClient sasl.Client) error {
 	mech, initialResp, err := saslClient.Start()
 	if err != nil {
 		return err
@@ -38,7 +39,7 @@ func (c *Client) Authenticate(saslClient sasl.Client) error {
 	for {
 		challengeStr, err := contReq.Wait()
 		if err != nil {
-			return cmd.Wait()
+			return cmd.Wait(ctx)
 		}
 
 		if challengeStr == "" {

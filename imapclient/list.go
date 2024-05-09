@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"unicode/utf8"
@@ -147,7 +148,7 @@ func (cmd *ListCommand) Close() error {
 	for cmd.Next() != nil {
 		// ignore
 	}
-	return cmd.cmd.Wait()
+	return cmd.cmd.Wait(context.Background())
 }
 
 // Collect accumulates mailboxes into a list.

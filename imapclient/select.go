@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"github.com/emersion/go-imap/v2"
 	"github.com/emersion/go-imap/v2/internal"
 )
@@ -91,8 +92,8 @@ type SelectCommand struct {
 	data    imap.SelectData
 }
 
-func (cmd *SelectCommand) Wait() (*imap.SelectData, error) {
-	return &cmd.data, cmd.cmd.Wait()
+func (cmd *SelectCommand) Wait(ctx context.Context) (*imap.SelectData, error) {
+	return &cmd.data, cmd.cmd.Wait(ctx)
 }
 
 type unselectCommand struct {

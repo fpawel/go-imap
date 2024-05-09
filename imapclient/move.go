@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"github.com/emersion/go-imap/v2"
 	"github.com/emersion/go-imap/v2/internal/imapwire"
 )
@@ -48,8 +49,8 @@ type MoveCommand struct {
 	expunge *ExpungeCommand
 }
 
-func (cmd *MoveCommand) Wait() (*MoveData, error) {
-	if err := cmd.cmd.Wait(); err != nil {
+func (cmd *MoveCommand) Wait(ctx context.Context) (*MoveData, error) {
+	if err := cmd.cmd.Wait(ctx); err != nil {
 		return nil, err
 	}
 	if cmd.store != nil {

@@ -21,6 +21,7 @@ package imapclient
 
 import (
 	"bufio"
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -155,6 +156,7 @@ type Client struct {
 	pendingCmds  []command
 	contReqs     []continuationRequest
 	closed       bool
+	cancel       context.CancelFunc
 }
 
 // New creates a new IMAP client.
@@ -204,20 +206,24 @@ func New(conn net.Conn, options *Options) *Client {
 		enabled:    make(imap.CapSet),
 	}
 
-	go client.read()
+	var ctx context.Context
+
+	ctx, client.cancel = context.WithCancel(context.Background())
+
+	go client.read(ctx)
 	return client
 }
 
 // NewStartTLS creates a new IMAP client with STARTTLS.
 //
 // A nil options pointer is equivalent to a zero options value.
-func NewStartTLS(conn net.Conn, options *Options) (*Client, error) {
+func NewStartTLS(ctx context.Context, conn net.Conn, options *Options) (*Client, error) {
 	if options == nil {
 		options = &Options{}
 	}
 
 	client := New(conn, options)
-	if err := client.startTLS(options.TLSConfig); err != nil {
+	if err := client.startTLS(ctx, options.TLSConfig); err != nil {
 		conn.Close()
 		return nil, err
 	}
@@ -255,7 +261,7 @@ func DialTLS(address string, options *Options) (*Client, error) {
 }
 
 // DialStartTLS connects to an IMAP server with STARTTLS.
-func DialStartTLS(address string, options *Options) (*Client, error) {
+func DialStartTLS(ctx context.Context, address string, options *Options) (*Client, error) {
 	if options == nil {
 		options = &Options{}
 	}
@@ -276,7 +282,11 @@ func DialStartTLS(address string, options *Options) (*Client, error) {
 	}
 	newOptions := *options
 	newOptions.TLSConfig = tlsConfig
-	return NewStartTLS(conn, &newOptions)
+	return NewStartTLS(ctx, conn, &newOptions)
+}
+
+func (c *Client) Cancel() {
+	c.cancel()
 }
 
 func (c *Client) setReadTimeout(dur time.Duration) {
@@ -316,7 +326,7 @@ func (c *Client) setState(state imap.ConnState) {
 // When the server hasn't sent the capability list, this method will request it
 // and block until it's received. If the capabilities cannot be fetched, nil is
 // returned.
-func (c *Client) Caps() imap.CapSet {
+func (c *Client) Caps(ctx context.Context) imap.CapSet {
 	if err := c.WaitGreeting(); err != nil {
 		return nil
 	}
@@ -334,7 +344,7 @@ func (c *Client) Caps() imap.CapSet {
 		capCmd := c.Capability()
 		capCh := make(chan struct{})
 		go func() {
-			capCmd.Wait()
+			capCmd.Wait(ctx)
 			close(capCh)
 		}()
 		c.mutex.Lock()
@@ -350,7 +360,7 @@ func (c *Client) Caps() imap.CapSet {
 	return c.caps
 }
 
-func (c *Client) setCaps(caps imap.CapSet) {
+func (c *Client) setCaps(ctx context.Context, caps imap.CapSet) {
 	// If the capabilities are being reset, request the updated capabilities
 	// from the server
 	var capCh chan struct{}
@@ -360,7 +370,7 @@ func (c *Client) setCaps(caps imap.CapSet) {
 		// We need to send the CAPABILITY command in a separate goroutine:
 		// setCaps might be called with Client.encMutex locked
 		go func() {
-			c.Capability().Wait()
+			c.Capability().Wait(ctx)
 			close(capCh)
 		}()
 	}
@@ -583,7 +593,7 @@ func (c *Client) closeWithError(err error) {
 //
 // All the data is decoded in the read goroutine, then dispatched via channels
 // to pending commands.
-func (c *Client) read() {
+func (c *Client) read(ctx context.Context) {
 	defer close(c.decCh)
 	defer func() {
 		if v := recover(); v != nil {
@@ -600,10 +610,10 @@ func (c *Client) read() {
 	c.setReadTimeout(c.options.Timeouts.RespRead) // We're waiting for the greeting
 	for {
 		// Ignore net.ErrClosed here, because we also call conn.Close in c.Close
-		if c.dec.EOF() || errors.Is(c.dec.Err(), net.ErrClosed) || errors.Is(c.dec.Err(), io.ErrClosedPipe) {
+		if ctx.Err() != nil || c.dec.EOF() || errors.Is(c.dec.Err(), net.ErrClosed) || errors.Is(c.dec.Err(), io.ErrClosedPipe) {
 			break
 		}
-		if err := c.readResponse(); err != nil {
+		if err := c.readResponse(ctx); err != nil {
 			c.decErr = err
 			break
 		}
@@ -613,7 +623,7 @@ func (c *Client) read() {
 	}
 }
 
-func (c *Client) readResponse() error {
+func (c *Client) readResponse(ctx context.Context) error {
 	c.setReadTimeout(c.options.Timeouts.RespRead)
 	defer c.setReadTimeout(idleReadTimeout)
 
@@ -642,10 +652,10 @@ func (c *Client) readResponse() error {
 	)
 	if tag != "" {
 		token = "response-tagged"
-		startTLS, err = c.readResponseTagged(tag, typ)
+		startTLS, err = c.readResponseTagged(ctx, tag, typ)
 	} else {
 		token = "response-data"
-		err = c.readResponseData(typ)
+		err = c.readResponseData(ctx, typ)
 	}
 	if err != nil {
 		return fmt.Errorf("in %v: %v", token, err)
@@ -687,7 +697,7 @@ func (c *Client) readContinueReq() error {
 	return nil
 }
 
-func (c *Client) readResponseTagged(tag, typ string) (startTLS *startTLSCommand, err error) {
+func (c *Client) readResponseTagged(ctx context.Context, tag, typ string) (startTLS *startTLSCommand, err error) {
 	cmd := c.deletePendingCmdByTag(tag)
 	if cmd == nil {
 		return nil, fmt.Errorf("received tagged response with unknown tag %q", tag)
@@ -717,7 +727,7 @@ func (c *Client) readResponseTagged(tag, typ string) (startTLS *startTLSCommand,
 			if err != nil {
 				return nil, fmt.Errorf("in capability-data: %v", err)
 			}
-			c.setCaps(caps)
+			c.setCaps(ctx, caps)
 		case "APPENDUID":
 			var (
 				uidValidity uint32
@@ -782,14 +792,14 @@ func (c *Client) readResponseTagged(tag, typ string) (startTLS *startTLSCommand,
 		switch cmd.(type) {
 		case *startTLSCommand, *loginCommand, *authenticateCommand, *unauthenticateCommand:
 			// These commands invalidate the capabilities
-			c.setCaps(nil)
+			c.setCaps(ctx, nil)
 		}
 	}
 
 	return startTLS, nil
 }
 
-func (c *Client) readResponseData(typ string) error {
+func (c *Client) readResponseData(ctx context.Context, typ string) error {
 	// number SP ("EXISTS" / "RECENT" / "FETCH" / "EXPUNGE")
 	var num uint32
 	if typ[0] >= '0' && typ[0] <= '9' {
@@ -821,7 +831,7 @@ func (c *Client) readResponseData(typ string) error {
 				if err != nil {
 					return fmt.Errorf("in capability-data: %v", err)
 				}
-				c.setCaps(caps)
+				c.setCaps(ctx, caps)
 			case "PERMANENTFLAGS":
 				if !c.dec.ExpectSP() {
 					return c.dec.Err()
@@ -918,7 +928,7 @@ func (c *Client) readResponseData(typ string) error {
 			}
 			c.greetingRecv = true
 			if c.greetingErr == nil && code != "CAPABILITY" {
-				c.setCaps(nil) // request initial capabilities
+				c.setCaps(ctx, nil) // request initial capabilities
 			}
 			close(c.greetingCh)
 		}
@@ -1181,8 +1191,14 @@ func (cmd *Command) base() *Command {
 }
 
 // Wait blocks until the command has completed.
-func (cmd *Command) Wait() error {
+func (cmd *Command) Wait(ctx context.Context) error {
 	if cmd.err == nil {
+		select {
+		case r := <-cmd.done:
+			cmd.err = r
+		case <-ctx.Done():
+			cmd.err = ctx.Err()
+		}
 		cmd.err = <-cmd.done
 	}
 	return cmd.err

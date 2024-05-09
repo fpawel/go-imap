@@ -3,6 +3,7 @@ package imapclient
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"crypto/tls"
 	"io"
 	"net"
@@ -11,7 +12,7 @@ import (
 // startTLS sends a STARTTLS command.
 //
 // Unlike other commands, this method blocks until the command completes.
-func (c *Client) startTLS(config *tls.Config) error {
+func (c *Client) startTLS(ctx context.Context, config *tls.Config) error {
 	upgradeDone := make(chan struct{})
 	cmd := &startTLSCommand{
 		tlsConfig:   config,
@@ -25,7 +26,7 @@ func (c *Client) startTLS(config *tls.Config) error {
 	// commands until a server response is seen and the TLS negotiation is
 	// complete
 
-	if err := cmd.Wait(); err != nil {
+	if err := cmd.Wait(ctx); err != nil {
 		return err
 	}
 
