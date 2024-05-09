@@ -15,12 +15,12 @@ func (c *Client) Capability() *CapabilityCommand {
 	return cmd
 }
 
-func (c *Client) handleCapability() error {
+func (c *Client) handleCapability(ctx context.Context) error {
 	caps, err := readCapabilities(c.dec)
 	if err != nil {
 		return err
 	}
-	c.setCaps(caps)
+	c.setCaps(ctx, caps)
 	if cmd := findPendingCmdByType[*CapabilityCommand](c); cmd != nil {
 		cmd.caps = caps
 	}

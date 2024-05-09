@@ -1,6 +1,7 @@
 package imapclient_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/emersion/go-imap/v2"
@@ -11,7 +12,7 @@ func TestESearch(t *testing.T) {
 	defer client.Close()
 	defer server.Close()
 
-	if !client.Caps().Has(imap.CapESearch) {
+	if !client.Caps(context.Background()).Has(imap.CapESearch) {
 		t.Skip("server doesn't support ESEARCH")
 	}
 
@@ -24,7 +25,7 @@ func TestESearch(t *testing.T) {
 	options := imap.SearchOptions{
 		ReturnCount: true,
 	}
-	data, err := client.Search(&criteria, &options).Wait()
+	data, err := client.Search(&criteria, &options).Wait(context.Background())
 	if err != nil {
 		t.Fatalf("Search().Wait() = %v", err)
 	}

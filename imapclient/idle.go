@@ -97,12 +97,18 @@ func (cmd *IdleCommand) Close() error {
 }
 
 // Wait blocks until the IDLE command has completed.
-func (cmd *IdleCommand) Wait() error {
-	<-cmd.done
+func (cmd *IdleCommand) Wait(ctx context.Context) error {
+	select {
+	case <-cmd.done:
+		break
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
 	if cmd.err != nil {
 		return cmd.err
 	}
-	return cmd.lastChild.Wait()
+	return cmd.lastChild.Wait(ctx)
 }
 
 func (c *Client) idle() (*idleCommand, error) {

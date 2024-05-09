@@ -1,6 +1,7 @@
 package imapclient_test
 
 import (
+	"context"
 	"io"
 	"log"
 	"time"
@@ -19,7 +20,7 @@ func ExampleClient() {
 	}
 	defer c.Close()
 
-	if err := c.Login("root", "asdf").Wait(); err != nil {
+	if err := c.Login("root", "asdf").Wait(context.Background()); err != nil {
 		log.Fatalf("failed to login: %v", err)
 	}
 
@@ -32,7 +33,7 @@ func ExampleClient() {
 		log.Printf(" - %v", mbox.Mailbox)
 	}
 
-	selectedMbox, err := c.Select("INBOX", nil).Wait()
+	selectedMbox, err := c.Select("INBOX", nil).Wait(context.Background())
 	if err != nil {
 		log.Fatalf("failed to select INBOX: %v", err)
 	}
@@ -48,7 +49,7 @@ func ExampleClient() {
 		log.Printf("subject of first message in INBOX: %v", messages[0].Envelope.Subject)
 	}
 
-	if err := c.Logout().Wait(); err != nil {
+	if err := c.Logout().Wait(context.Background()); err != nil {
 		log.Fatalf("failed to logout: %v", err)
 	}
 }
@@ -64,10 +65,10 @@ func ExampleClient_pipelining() {
 	selectCmd := c.Select("INBOX", nil)
 	fetchCmd := c.Fetch(imap.UIDSetNum(uid), fetchOptions)
 
-	if err := loginCmd.Wait(); err != nil {
+	if err := loginCmd.Wait(context.Background()); err != nil {
 		log.Fatalf("failed to login: %v", err)
 	}
-	if _, err := selectCmd.Wait(); err != nil {
+	if _, err := selectCmd.Wait(context.Background()); err != nil {
 		log.Fatalf("failed to select INBOX: %v", err)
 	}
 	if messages, err := fetchCmd.Collect(); err != nil {
@@ -89,7 +90,7 @@ func ExampleClient_Append() {
 	if err := appendCmd.Close(); err != nil {
 		log.Fatalf("failed to close message: %v", err)
 	}
-	if _, err := appendCmd.Wait(); err != nil {
+	if _, err := appendCmd.Wait(context.Background()); err != nil {
 		log.Fatalf("APPEND command failed: %v", err)
 	}
 }
@@ -98,7 +99,7 @@ func ExampleClient_Status() {
 	var c *imapclient.Client
 
 	options := imap.StatusOptions{NumMessages: true}
-	if data, err := c.Status("INBOX", &options).Wait(); err != nil {
+	if data, err := c.Status("INBOX", &options).Wait(context.Background()); err != nil {
 		log.Fatalf("STATUS command failed: %v", err)
 	} else {
 		log.Printf("INBOX contains %v messages", *data.NumMessages)
@@ -298,7 +299,7 @@ func ExampleClient_Search() {
 
 	data, err := c.UIDSearch(&imap.SearchCriteria{
 		Body: []string{"Hello world"},
-	}, nil).Wait()
+	}, nil).Wait(context.Background())
 	if err != nil {
 		log.Fatalf("UID SEARCH command failed: %v", err)
 	}
@@ -325,10 +326,10 @@ func ExampleClient_Idle() {
 	}
 	defer c.Close()
 
-	if err := c.Login("root", "asdf").Wait(); err != nil {
+	if err := c.Login("root", "asdf").Wait(context.Background()); err != nil {
 		log.Fatalf("failed to login: %v", err)
 	}
-	if _, err := c.Select("INBOX", nil).Wait(); err != nil {
+	if _, err := c.Select("INBOX", nil).Wait(context.Background()); err != nil {
 		log.Fatalf("failed to select INBOX: %v", err)
 	}
 
@@ -354,7 +355,7 @@ func ExampleClient_Authenticate_oauth() {
 		token    string
 	)
 
-	if !c.Caps().Has(imap.AuthCap(sasl.OAuthBearer)) {
+	if !c.Caps(context.Background()).Has(imap.AuthCap(sasl.OAuthBearer)) {
 		log.Fatal("OAUTHBEARER not supported by the server")
 	}
 
@@ -362,7 +363,7 @@ func ExampleClient_Authenticate_oauth() {
 		Username: username,
 		Token:    token,
 	})
-	if err := c.Authenticate(saslClient); err != nil {
+	if err := c.Authenticate(context.Background(), saslClient); err != nil {
 		log.Fatalf("authentication failed: %v", err)
 	}
 }

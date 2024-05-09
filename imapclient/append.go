@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"io"
 
 	"github.com/emersion/go-imap/v2"
@@ -53,6 +54,6 @@ func (cmd *AppendCommand) Close() error {
 	return err
 }
 
-func (cmd *AppendCommand) Wait() (*imap.AppendData, error) {
-	return &cmd.data, cmd.cmd.Wait()
+func (cmd *AppendCommand) Wait(ctx context.Context) (*imap.AppendData, error) {
+	return &cmd.data, cmd.cmd.Wait(ctx)
 }

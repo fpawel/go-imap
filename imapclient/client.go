@@ -157,6 +157,7 @@ type Client struct {
 	contReqs     []continuationRequest
 	closed       bool
 	cancel       context.CancelFunc
+	ctxInternal  context.Context
 }
 
 // New creates a new IMAP client.
@@ -206,11 +207,9 @@ func New(conn net.Conn, options *Options) *Client {
 		enabled:    make(imap.CapSet),
 	}
 
-	var ctx context.Context
+	client.ctxInternal, client.cancel = context.WithCancel(context.Background())
 
-	ctx, client.cancel = context.WithCancel(context.Background())
-
-	go client.read(ctx)
+	go client.read(client.ctxInternal)
 	return client
 }
 
@@ -933,7 +932,7 @@ func (c *Client) readResponseData(ctx context.Context, typ string) error {
 			close(c.greetingCh)
 		}
 	case "CAPABILITY":
-		return c.handleCapability()
+		return c.handleCapability(ctx)
 	case "ENABLED":
 		return c.handleEnabled()
 	case "NAMESPACE":
@@ -1199,7 +1198,6 @@ func (cmd *Command) Wait(ctx context.Context) error {
 		case <-ctx.Done():
 			cmd.err = ctx.Err()
 		}
-		cmd.err = <-cmd.done
 	}
 	return cmd.err
 }

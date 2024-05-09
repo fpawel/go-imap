@@ -1,6 +1,7 @@
 package imapclient_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/emersion/go-imap/v2"
@@ -36,7 +37,7 @@ func TestIdle_closedConn(t *testing.T) {
 		t.Fatalf("client.Close() = %v", err)
 	}
 
-	if err := idleCmd.Wait(); err == nil {
+	if err := idleCmd.Wait(context.Background()); err == nil {
 		t.Errorf("IdleCommand.Wait() = nil, want an error")
 	}
 }

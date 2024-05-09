@@ -22,7 +22,7 @@ func (c *Client) Authenticate(ctx context.Context, saslClient sasl.Client) error
 	// c.Caps may send a CAPABILITY command, so check it before c.beginCommand
 	var hasSASLIR bool
 	if initialResp != nil {
-		hasSASLIR = c.Caps().Has(imap.CapSASLIR)
+		hasSASLIR = c.Caps(ctx).Has(imap.CapSASLIR)
 	}
 
 	cmd := &authenticateCommand{}

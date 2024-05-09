@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -84,8 +85,8 @@ type StatusCommand struct {
 	data    imap.StatusData
 }
 
-func (cmd *StatusCommand) Wait() (*imap.StatusData, error) {
-	return &cmd.data, cmd.cmd.Wait()
+func (cmd *StatusCommand) Wait(ctx context.Context) (*imap.StatusData, error) {
+	return &cmd.data, cmd.cmd.Wait(ctx)
 }
 
 func readStatus(dec *imapwire.Decoder) (*imap.StatusData, error) {

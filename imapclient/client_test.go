@@ -169,12 +169,12 @@ func newClientServerPair(t *testing.T, initialState imap.ConnState) (*imapclient
 		appendCmd := client.Append("INBOX", int64(len(simpleRawMessage)), nil)
 		appendCmd.Write([]byte(simpleRawMessage))
 		appendCmd.Close()
-		if _, err := appendCmd.Wait(); err != nil {
+		if _, err := appendCmd.Wait(context.Background()); err != nil {
 			t.Fatalf("AppendCommand.Wait() = %v", err)
 		}
 	}
 	if initialState >= imap.ConnStateSelected {
-		if _, err := client.Select("INBOX", nil).Wait(); err != nil {
+		if _, err := client.Select("INBOX", nil).Wait(context.Background()); err != nil {
 			t.Fatalf("Select().Wait() = %v", err)
 		}
 	}

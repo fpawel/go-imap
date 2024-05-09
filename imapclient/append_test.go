@@ -1,6 +1,7 @@
 package imapclient_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/emersion/go-imap/v2"
@@ -20,7 +21,7 @@ func TestAppend(t *testing.T) {
 	if err := appendCmd.Close(); err != nil {
 		t.Fatalf("AppendCommand.Close() = %v", err)
 	}
-	if _, err := appendCmd.Wait(); err != nil {
+	if _, err := appendCmd.Wait(context.Background()); err != nil {
 		t.Fatalf("AppendCommand.Wait() = %v", err)
 	}
 

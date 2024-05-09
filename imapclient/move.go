@@ -10,11 +10,11 @@ import (
 //
 // If the server doesn't support IMAP4rev2 nor the MOVE extension, a fallback
 // with COPY + STORE + EXPUNGE commands is used.
-func (c *Client) Move(numSet imap.NumSet, mailbox string) *MoveCommand {
+func (c *Client) Move(ctx context.Context, numSet imap.NumSet, mailbox string) *MoveCommand {
 	// If the server doesn't support MOVE, fallback to [UID] COPY,
 	// [UID] STORE +FLAGS.SILENT \Deleted and [UID] EXPUNGE
 	cmdName := "MOVE"
-	if !c.Caps().Has(imap.CapMove) {
+	if !c.Caps(c.ctxInternal).Has(imap.CapMove) {
 		cmdName = "COPY"
 	}
 
@@ -29,7 +29,7 @@ func (c *Client) Move(numSet imap.NumSet, mailbox string) *MoveCommand {
 			Silent: true,
 			Flags:  []imap.Flag{imap.FlagDeleted},
 		}, nil)
-		if uidSet, ok := numSet.(imap.UIDSet); ok && c.Caps().Has(imap.CapUIDPlus) {
+		if uidSet, ok := numSet.(imap.UIDSet); ok && c.Caps(ctx).Has(imap.CapUIDPlus) {
 			cmd.expunge = c.UIDExpunge(uidSet)
 		} else {
 			cmd.expunge = c.Expunge()

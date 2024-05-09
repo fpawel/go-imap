@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/emersion/go-imap/v2"
@@ -22,8 +23,8 @@ type CopyCommand struct {
 	data imap.CopyData
 }
 
-func (cmd *CopyCommand) Wait() (*imap.CopyData, error) {
-	return &cmd.data, cmd.cmd.Wait()
+func (cmd *CopyCommand) Wait(ctx context.Context) (*imap.CopyData, error) {
+	return &cmd.data, cmd.cmd.Wait(ctx)
 }
 
 func readRespCodeCopyUID(dec *imapwire.Decoder) (uidValidity uint32, srcUIDs, dstUIDs imap.UIDSet, err error) {

@@ -13,10 +13,10 @@ func testCreate(t *testing.T, name string, utf8Accept bool) {
 	defer server.Close()
 
 	if utf8Accept {
-		if !client.Caps().Has(imap.CapUTF8Accept) {
+		if !client.Caps(context.Background()).Has(imap.CapUTF8Accept) {
 			t.Skipf("missing UTF8=ACCEPT support")
 		}
-		if data, err := client.Enable(imap.CapUTF8Accept).Wait(); err != nil {
+		if data, err := client.Enable(imap.CapUTF8Accept).Wait(context.Background()); err != nil {
 			t.Fatalf("Enable(CapUTF8Accept) = %v", err)
 		} else if !data.Caps.Has(imap.CapUTF8Accept) {
 			t.Fatalf("server refused to enable UTF8=ACCEPT")

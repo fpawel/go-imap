@@ -1,6 +1,7 @@
 package imapclient_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/emersion/go-imap/v2"
@@ -11,7 +12,7 @@ func TestSelect(t *testing.T) {
 	defer client.Close()
 	defer server.Close()
 
-	data, err := client.Select("INBOX", nil).Wait()
+	data, err := client.Select("INBOX", nil).Wait(context.Background())
 	if err != nil {
 		t.Fatalf("Select() = %v", err)
 	} else if data.NumMessages != 1 {

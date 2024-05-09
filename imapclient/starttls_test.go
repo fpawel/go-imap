@@ -1,6 +1,7 @@
 package imapclient_test
 
 import (
+	"context"
 	"crypto/tls"
 	"testing"
 
@@ -15,13 +16,13 @@ func TestStartTLS(t *testing.T) {
 	options := imapclient.Options{
 		TLSConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	client, err := imapclient.NewStartTLS(conn, &options)
+	client, err := imapclient.NewStartTLS(context.Background(), conn, &options)
 	if err != nil {
 		t.Fatalf("NewStartTLS() = %v", err)
 	}
 	defer client.Close()
 
-	if err := client.Noop().Wait(); err != nil {
+	if err := client.Noop().Wait(context.Background()); err != nil {
 		t.Fatalf("Noop().Wait() = %v", err)
 	}
 }

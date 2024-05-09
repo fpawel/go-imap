@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/emersion/go-imap/v2"
@@ -56,8 +57,8 @@ type ThreadCommand struct {
 	data []ThreadData
 }
 
-func (cmd *ThreadCommand) Wait() ([]ThreadData, error) {
-	err := cmd.cmd.Wait()
+func (cmd *ThreadCommand) Wait(ctx context.Context) ([]ThreadData, error) {
+	err := cmd.cmd.Wait(ctx)
 	return cmd.data, err
 }
 

@@ -295,6 +295,8 @@ func (c *Conn) readCommand(dec *imapwire.Decoder) error {
 			Code: imap.ResponseCodeClientBug,
 			Text: "Syntax error: " + decErr.Message,
 		}
+	} else if errors.Is(err, io.ErrClosedPipe) || errors.Is(err, net.ErrClosed) {
+		return err
 	} else if err != nil {
 		c.server.logger().Printf("handling %v command: %v", name, err)
 		resp = internalServerErrorResp

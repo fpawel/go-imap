@@ -1,6 +1,7 @@
 package imapclient_test
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -16,7 +17,7 @@ func TestStatus(t *testing.T) {
 		NumMessages: true,
 		NumUnseen:   true,
 	}
-	data, err := client.Status("INBOX", &options).Wait()
+	data, err := client.Status("INBOX", &options).Wait(context.Background())
 	if err != nil {
 		t.Fatalf("Status() = %v", err)
 	}

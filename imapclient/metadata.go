@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/emersion/go-imap/v2/internal/imapwire"
@@ -137,8 +138,8 @@ type GetMetadataCommand struct {
 	data    GetMetadataData
 }
 
-func (cmd *GetMetadataCommand) Wait() (*GetMetadataData, error) {
-	return &cmd.data, cmd.cmd.Wait()
+func (cmd *GetMetadataCommand) Wait(ctx context.Context) (*GetMetadataData, error) {
+	return &cmd.data, cmd.cmd.Wait(ctx)
 }
 
 // GetMetadataData is the data returned by the GETMETADATA command.

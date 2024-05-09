@@ -44,7 +44,7 @@ func (c *Client) search(numKind imapwire.NumKind, criteria *imap.SearchCriteria,
 	// decode encoded headers and Content-Transfer-Encoding before matching the
 	// criteria.
 	var charset string
-	if !c.Caps().Has(imap.CapIMAP4rev2) && !c.enabled.Has(imap.CapUTF8Accept) && !searchCriteriaIsASCII(criteria) {
+	if !c.Caps(c.ctxInternal).Has(imap.CapIMAP4rev2) && !c.enabled.Has(imap.CapUTF8Accept) && !searchCriteriaIsASCII(criteria) {
 		charset = "UTF-8"
 	}
 
