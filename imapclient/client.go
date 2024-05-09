@@ -38,12 +38,7 @@ import (
 )
 
 const (
-	idleReadTimeout    = time.Duration(0)
-	respReadTimeout    = 30 * time.Second
-	literalReadTimeout = 5 * time.Minute
-
-	cmdWriteTimeout     = 30 * time.Second
-	literalWriteTimeout = 5 * time.Minute
+	idleReadTimeout = time.Duration(0)
 )
 
 var dialer = &net.Dialer{
@@ -59,8 +54,8 @@ type SelectedMailbox struct {
 }
 
 func (mbox *SelectedMailbox) copy() *SelectedMailbox {
-	copy := *mbox
-	return &copy
+	cp := *mbox
+	return &cp
 }
 
 // Options contains options for Client.
@@ -76,6 +71,11 @@ type Options struct {
 	UnilateralDataHandler *UnilateralDataHandler
 	// Decoder for RFC 2047 words.
 	WordDecoder *mime.WordDecoder
+	Timeouts    Timeouts
+}
+
+type Timeouts struct {
+	RespRead, LiteralRead, CmdWrite, LiteralWrite time.Duration
 }
 
 func (options *Options) wrapReadWriter(rw io.ReadWriter) io.ReadWriter {
@@ -167,6 +167,27 @@ func New(conn net.Conn, options *Options) *Client {
 		options = &Options{}
 	}
 
+	const (
+		respReadTimeout    = 30 * time.Second
+		literalReadTimeout = 5 * time.Minute
+
+		cmdWriteTimeout     = 30 * time.Second
+		literalWriteTimeout = 5 * time.Minute
+	)
+
+	if options.Timeouts.CmdWrite == 0 {
+		options.Timeouts.CmdWrite = cmdWriteTimeout
+	}
+	if options.Timeouts.RespRead == 0 {
+		options.Timeouts.RespRead = respReadTimeout
+	}
+	if options.Timeouts.LiteralRead == 0 {
+		options.Timeouts.LiteralRead = literalReadTimeout
+	}
+	if options.Timeouts.LiteralWrite == 0 {
+		options.Timeouts.LiteralWrite = literalWriteTimeout
+	}
+
 	rw := options.wrapReadWriter(conn)
 	br := bufio.NewReader(rw)
 	bw := bufio.NewWriter(rw)
@@ -182,6 +203,7 @@ func New(conn net.Conn, options *Options) *Client {
 		state:      imap.ConnStateNone,
 		enabled:    make(imap.CapSet),
 	}
+
 	go client.read()
 	return client
 }
@@ -409,7 +431,7 @@ func (c *Client) beginCommand(name string, cmd command) *commandEncoder {
 
 	c.mutex.Unlock()
 
-	c.setWriteTimeout(cmdWriteTimeout)
+	c.setWriteTimeout(c.options.Timeouts.CmdWrite)
 
 	wireEnc := imapwire.NewEncoder(c.bw, imapwire.ConnSideClient)
 	wireEnc.QuotedUTF8 = quotedUTF8
@@ -575,7 +597,7 @@ func (c *Client) read() {
 		c.closeWithError(cmdErr)
 	}()
 
-	c.setReadTimeout(respReadTimeout) // We're waiting for the greeting
+	c.setReadTimeout(c.options.Timeouts.RespRead) // We're waiting for the greeting
 	for {
 		// Ignore net.ErrClosed here, because we also call conn.Close in c.Close
 		if c.dec.EOF() || errors.Is(c.dec.Err(), net.ErrClosed) || errors.Is(c.dec.Err(), io.ErrClosedPipe) {
@@ -592,7 +614,7 @@ func (c *Client) read() {
 }
 
 func (c *Client) readResponse() error {
-	c.setReadTimeout(respReadTimeout)
+	c.setReadTimeout(c.options.Timeouts.RespRead)
 	defer c.setReadTimeout(idleReadTimeout)
 
 	if c.dec.Special('+') {
@@ -1089,7 +1111,7 @@ func (ce *commandEncoder) Literal(size int64) io.WriteCloser {
 	if size > 4096 || !hasCapLiteralMinus {
 		contReq = ce.client.registerContReq(ce.cmd)
 	}
-	ce.client.setWriteTimeout(literalWriteTimeout)
+	ce.client.setWriteTimeout(ce.client.options.Timeouts.LiteralWrite)
 	return literalWriter{
 		WriteCloser: ce.Encoder.Literal(size, contReq),
 		client:      ce.client,
@@ -1102,7 +1124,7 @@ type literalWriter struct {
 }
 
 func (lw literalWriter) Close() error {
-	lw.client.setWriteTimeout(cmdWriteTimeout)
+	lw.client.setWriteTimeout(lw.client.options.Timeouts.CmdWrite)
 	return lw.WriteCloser.Close()
 }
 

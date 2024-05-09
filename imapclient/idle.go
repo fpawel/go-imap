@@ -136,7 +136,7 @@ func (cmd *idleCommand) Close() error {
 	if cmd.enc == nil {
 		return fmt.Errorf("imapclient: IDLE command closed twice")
 	}
-	cmd.enc.client.setWriteTimeout(cmdWriteTimeout)
+	cmd.enc.client.setWriteTimeout(cmd.enc.client.options.Timeouts.CmdWrite)
 	_, err := cmd.enc.client.bw.WriteString("DONE\r\n")
 	if err == nil {
 		err = cmd.enc.client.bw.Flush()
