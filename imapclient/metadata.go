@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/fpawel/go-imap/internal/imapwire"
 )
 
 type GetMetadataDepth int

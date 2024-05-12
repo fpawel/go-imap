@@ -3,8 +3,8 @@ package imapserver
 import (
 	"fmt"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/fpawel/go-imap"
+	"github.com/fpawel/go-imap/internal/imapwire"
 )
 
 func (c *Conn) handleSelect(tag string, dec *imapwire.Decoder, readOnly bool) error {

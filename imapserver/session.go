@@ -3,9 +3,9 @@ package imapserver
 import (
 	"fmt"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
 	"github.com/emersion/go-sasl"
+	"github.com/fpawel/go-imap"
+	"github.com/fpawel/go-imap/internal/imapwire"
 )
 
 var errAuthFailed = &imap.Error{

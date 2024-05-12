@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/emersion/go-imap/v2"
+	"github.com/fpawel/go-imap"
 )
 
 // Enable sends an ENABLE command.

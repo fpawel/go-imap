@@ -2,7 +2,7 @@ package imapclient
 
 import (
 	"context"
-	"github.com/emersion/go-imap/v2"
+	"github.com/fpawel/go-imap"
 )
 
 // Expunge sends an EXPUNGE command.

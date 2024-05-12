@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/imapserver"
+	"github.com/fpawel/go-imap"
+	"github.com/fpawel/go-imap/imapserver"
 )
 
 // Mailbox is an in-memory mailbox.

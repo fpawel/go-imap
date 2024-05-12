@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/fpawel/go-imap"
+	"github.com/fpawel/go-imap/internal/imapwire"
 )
 
 const (

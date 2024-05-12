@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal"
+	"github.com/fpawel/go-imap"
+	"github.com/fpawel/go-imap/internal"
 )
 
 // Append sends an APPEND command.

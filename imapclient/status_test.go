@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/emersion/go-imap/v2"
+	"github.com/fpawel/go-imap"
 )
 
 func TestStatus(t *testing.T) {

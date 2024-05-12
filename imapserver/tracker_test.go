@@ -3,7 +3,7 @@ package imapserver_test
 import (
 	"testing"
 
-	"github.com/emersion/go-imap/v2/imapserver"
+	"github.com/fpawel/go-imap/imapserver"
 )
 
 type trackerUpdate struct {

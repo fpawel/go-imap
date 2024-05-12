@@ -9,8 +9,8 @@ import (
 	"github.com/emersion/go-message/mail"
 	"github.com/emersion/go-sasl"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/imapclient"
+	"github.com/fpawel/go-imap"
+	"github.com/fpawel/go-imap/imapclient"
 )
 
 func ExampleClient() {

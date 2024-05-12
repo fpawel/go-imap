@@ -5,9 +5,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/fpawel/go-imap"
+	"github.com/fpawel/go-imap/internal"
+	"github.com/fpawel/go-imap/internal/imapwire"
 )
 
 // appendLimit is the maximum size of an APPEND payload.
